@@ -11,68 +11,59 @@ function checkData(dataObject) {
   }
 }
 
-function findCommonLink(points) {
+function findCommonLink(pointsLinks) {
   const pointLinksCounter = [0, 0, 0, 0];
-  points.links.forEach((pointLink) => {
-    pointLinksCounter[pointLink.point1] += 1;
-    pointLinksCounter[pointLink.point2] += 1;
+  pointsLinks.links.forEach((link) => {
+    pointLinksCounter[link.point1] += 1;
+    pointLinksCounter[link.point2] += 1;
   });
 
   const linksPoints = [];
-  for (let i = 0; i < points.links.length; i += 1) {
-    const link = points.links[i];
+  for (let i = 0; i < pointsLinks.links.length; i += 1) {
+    const link = pointsLinks.links[i];
     linksPoints[i] = pointLinksCounter[link.point1] + pointLinksCounter[link.point2];
   }
 
   const commonLinkNumber = linksPoints.indexOf(Math.max.apply(null, linksPoints));
-  return points.links[commonLinkNumber];
+  const commonLink = pointsLinks.links[commonLinkNumber];
+
+  const otherPoints = [];
+  pointsLinks.points.forEach((point) => {
+    if (point.index !== commonLink.point1 && point.index !== commonLink.point2) {
+      otherPoints.push(point);
+    }
+  });
+  return { commonLink, otherPoints };
 }
 
 function calcAlpha(a, b, c) {
   return Math.acos((b * b + c * c - a * a) / (2 * b * c));
 }
 
+function calcPoint(pointToFind, point1, point2, dist) {
+  const alpha = calcAlpha(point2.links[pointToFind.index], point1.links[pointToFind.index], dist);
+  const resultPoint = {
+    x: point1.links[pointToFind.index] * Math.cos(alpha), y: point1.links[pointToFind.index] * Math.sin(alpha),
+  };
+  const vectorProduct = (pointToFind.x - point1.x) * (point2.y - point1.y)
+    - (pointToFind.y - point1.y) * (point2.x - point1.x);
+  if (vectorProduct < 0) {
+    resultPoint.y = -resultPoint.y;
+  }
+  return resultPoint;
+}
+
 module.exports = (dataObject) => {
   checkData(dataObject);
 
   const result = [];
-  const leftPoints = new Set([0, 1, 2, 3]);
-  const commonLink = findCommonLink(dataObject);
+  const { commonLink, otherPoints } = findCommonLink(dataObject);
   result[commonLink.point1] = { x: 0, y: 0 };
   result[commonLink.point2] = { x: commonLink.dist, y: 0 };
   const point1 = dataObject.points[commonLink.point1];
   const point2 = dataObject.points[commonLink.point2];
 
-  leftPoints.delete(commonLink.point1);
-  leftPoints.delete(commonLink.point2);
-
-  const vectorA = { x: point2.x - point1.x, y: point2.y - point1.y };
-
-  const thirdPointIndex = leftPoints.values().next().value;
-  leftPoints.delete(thirdPointIndex);
-  let alpha = calcAlpha(point2.links[thirdPointIndex], point1.links[thirdPointIndex], commonLink.dist);
-  const thirdPoint = {
-    x: point1.links[thirdPointIndex] * Math.cos(alpha), y: point1.links[thirdPointIndex] * Math.sin(alpha),
-  };
-  let vectorB = { x: thirdPoint.x - point1.x, y: thirdPoint.y - point1.y }
-  let vectorProduct = vectorA.x * vectorB.x + vectorA.y + vectorB.y;
-  if (vectorProduct < 0) {
-    thirdPoint.y = -thirdPoint.y;
-  }
-  result[thirdPointIndex] = thirdPoint;
-
-  const fourthPointIndex = leftPoints.values().next().value;
-  alpha = calcAlpha(point2.links[fourthPointIndex], point1.links[fourthPointIndex], commonLink.dist);
-  const fourthPoint = {
-    x: point1.links[fourthPointIndex] * Math.cos(alpha),
-    y: point1.links[fourthPointIndex] * Math.sin(alpha),
-  };
-  vectorB = { x: fourthPoint.x - point1.x, y: fourthPoint.y - point1.y }
-  vectorProduct = vectorA.x * vectorB.x + vectorA.y + vectorB.y;
-  if (vectorProduct < 0) {
-    fourthPoint.y = -fourthPoint.y;
-  }
-
-  result[fourthPointIndex] = fourthPoint;
+  result[otherPoints[0].index] = calcPoint(otherPoints[0], point1, point2, commonLink.dist);
+  result[otherPoints[1].index] = calcPoint(otherPoints[1], point1, point2, commonLink.dist);
   return result;
 };
