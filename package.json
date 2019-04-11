@@ -1,0 +1,24 @@
+{
+  "name": "coords-from-distances",
+  "version": "1.0.0",
+  "description": "Package helps you to calculate coords of points with given distances between them.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --exit test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Infl1ght/coords-from-distances.git"
+  },
+  "keywords": [
+    "geometry",
+    "coordinates",
+    "distances"
+  ],
+  "author": "Volkov Ilya <ilya.inflight@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Infl1ght/coords-from-distances/issues"
+  },
+  "homepage": "https://github.com/Infl1ght/coords-from-distances#readme"
+}
