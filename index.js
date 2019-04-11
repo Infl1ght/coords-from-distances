@@ -1,38 +1,29 @@
 
-function checkData(dataObject) {
-  if (!dataObject || !dataObject.points || !dataObject.links) {
-    throw new Error('Input object must exist and must contain points and links');
-  }
-  if (dataObject.points.length !== 4) {
-    throw new Error('There is must be 4 points');
-  }
-  if (dataObject.points.links < 5) {
-    throw new Error('There is must be 5 links at least');
+function checkData(points) {
+  if (!points || points.length !== 4) {
+    throw new Error('Input object must exist and must contain 4 points');
   }
 }
 
-function findCommonLink(pointsLinks) {
+function findCommonLink(points) {
   const pointLinksCounter = [0, 0, 0, 0];
-  pointsLinks.links.forEach((link) => {
-    pointLinksCounter[link.point1] += 1;
-    pointLinksCounter[link.point2] += 1;
+  points.forEach((point) => {
+    Object.entries(point.links).forEach((entry) => {
+      pointLinksCounter[entry[0]] += 1;
+    });
   });
 
-  const linksPoints = [];
-  for (let i = 0; i < pointsLinks.links.length; i += 1) {
-    const link = pointsLinks.links[i];
-    linksPoints[i] = pointLinksCounter[link.point1] + pointLinksCounter[link.point2];
-  }
-
-  const commonLinkNumber = linksPoints.indexOf(Math.max.apply(null, linksPoints));
-  const commonLink = pointsLinks.links[commonLinkNumber];
-
+  const maxLinkedPoints = Math.max.apply(null, pointLinksCounter);
+  const commonLink = [];
   const otherPoints = [];
-  pointsLinks.points.forEach((point) => {
-    if (point.index !== commonLink.point1 && point.index !== commonLink.point2) {
-      otherPoints.push(point);
+  for (let i = 0; i < points.length; i += 1) {
+    const point = points[i];
+    if (Object.entries(point.links).length === maxLinkedPoints) {
+      commonLink.push(points[i]);
+    } else {
+      otherPoints.push(points[i]);
     }
-  });
+  }
   return { commonLink, otherPoints };
 }
 
@@ -53,17 +44,16 @@ function calcPoint(pointToFind, point1, point2, dist) {
   return resultPoint;
 }
 
-module.exports = (dataObject) => {
-  checkData(dataObject);
+module.exports = (points) => {
+  checkData(points);
 
   const result = [];
-  const { commonLink, otherPoints } = findCommonLink(dataObject);
-  result[commonLink.point1] = { x: 0, y: 0 };
-  result[commonLink.point2] = { x: commonLink.dist, y: 0 };
-  const point1 = dataObject.points[commonLink.point1];
-  const point2 = dataObject.points[commonLink.point2];
+  const { commonLink, otherPoints } = findCommonLink(points);
+  const dist = commonLink[0].links[commonLink[1].index];
+  result[commonLink[0].index] = { x: 0, y: 0 };
+  result[commonLink[1].index] = { x: dist, y: 0 };
 
-  result[otherPoints[0].index] = calcPoint(otherPoints[0], point1, point2, commonLink.dist);
-  result[otherPoints[1].index] = calcPoint(otherPoints[1], point1, point2, commonLink.dist);
+  result[otherPoints[0].index] = calcPoint(otherPoints[0], commonLink[0], commonLink[1], dist);
+  result[otherPoints[1].index] = calcPoint(otherPoints[1], commonLink[0], commonLink[1], dist);
   return result;
 };
