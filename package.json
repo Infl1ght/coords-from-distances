@@ -1,6 +1,6 @@
 {
   "name": "coords-from-distances",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Package helps you to calculate coords of points with given distances between them.",
   "main": "index.js",
   "scripts": {
