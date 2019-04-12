@@ -18,7 +18,7 @@ function findCommonLink(points) {
   const otherPoints = [];
   for (let i = 0; i < points.length; i += 1) {
     const point = points[i];
-    if (Object.entries(point.links).length === maxLinkedPoints) {
+    if (Object.entries(point.links).length === maxLinkedPoints && commonLink.length < 2) {
       commonLink.push(points[i]);
     } else {
       otherPoints.push(points[i]);
